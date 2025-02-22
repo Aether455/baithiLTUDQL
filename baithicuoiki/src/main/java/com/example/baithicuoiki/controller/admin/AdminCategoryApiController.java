@@ -14,7 +14,9 @@ import java.util.List;
 public class AdminCategoryApiController {
 
     @Autowired
-    private CategoryService categoryService;  @PostMapping
+    private CategoryService categoryService;
+
+    @PostMapping
     public void createCategory(@RequestBody Category category) {
         categoryService.addCategory(category);
     }

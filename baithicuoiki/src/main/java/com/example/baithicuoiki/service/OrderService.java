@@ -73,8 +73,6 @@ public class OrderService {
         double orderTotalPrice = 0.0;
 
 
-        order = orderRepository.save(order);
-
         for (CartItem item : cartItems) {
             if (item.getProduct().getQuantity() < item.getQuantity()) {
                 throw new IllegalStateException("Sản phẩm " + item.getProduct().getId() + " không đủ số lượng.");
@@ -111,8 +109,6 @@ public class OrderService {
         if (user != null) {
             cartService.clearCard(user);
         }
-
-
 
         return order;
     }

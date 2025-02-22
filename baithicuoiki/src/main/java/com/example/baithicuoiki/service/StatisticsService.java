@@ -31,7 +31,7 @@ public class StatisticsService {
     public OverviewStatisticDTO getOverallStatistics() {
         Long totalOrders = orderRepository.count();
         Long totalCustomers = customerRepository.countTotalCustomers();
-        Double totalRevenue = orderRepository.findAll()
+        double totalRevenue = orderRepository.findAll()
                 .stream().mapToDouble(Order::getTotalPrice).sum();
 
         return new OverviewStatisticDTO(totalOrders, totalCustomers, totalRevenue);
@@ -53,37 +53,5 @@ public class StatisticsService {
                 .collect(Collectors.toList());
     }
 
-//    // Lọc đơn hàng theo ngày
-//    public List<OrderStatisticDTO> getOrdersByDate(LocalDate date) {
-//        return orderRepository.findByDate(date).stream()
-//                .map(o -> new OrderStatisticDTO(o.getId(),
-//                        o.getCustomerName(),
-//                        o.getTotalPrice(),
-//                        o.getStatus(),
-//                        o.getCreatedDate()))
-//                .collect(Collectors.toList());
-//    }
-//
-//    // Lọc đơn hàng theo tháng & năm
-//    public List<OrderStatisticDTO> getOrdersByMonthAndYear(int month, int year) {
-//        return orderRepository.findByMonthAndYear(month, year).stream()
-//                .map(o -> new OrderStatisticDTO(o.getId(),
-//                        o.getCustomerName(),
-//                        o.getTotalPrice(),
-//                        o.getStatus(),
-//                        o.getCreatedDate()))
-//                .collect(Collectors.toList());
-//    }
-//
-//    // Lọc đơn hàng theo năm
-//    public List<OrderStatisticDTO> getOrdersByYear(int year) {
-//        return orderRepository.findByYear(year).stream()
-//                .map(o -> new OrderStatisticDTO(o.getId(),
-//                        o.getCustomerName(),
-//                        o.getTotalPrice(),
-//                        o.getStatus(),
-//                        o.getCreatedDate()))
-//                .collect(Collectors.toList());
-//    }
 }
 

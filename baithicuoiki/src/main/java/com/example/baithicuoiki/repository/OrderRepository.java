@@ -17,13 +17,4 @@ public interface OrderRepository extends JpaRepository<Order,Long> {
 
     List<Order> findByUserId(Long userId);
 
-
-    @Query("SELECT o FROM Order o WHERE FUNCTION('DATE', o.createdDate) = :date")
-    List<Order> findByDate(@Param("date") LocalDate date);
-
-    @Query("SELECT o FROM Order o WHERE FUNCTION('YEAR', o.createdDate) = :year AND FUNCTION('MONTH', o.createdDate) = :month")
-    List<Order> findByMonthAndYear(@Param("month") int month, @Param("year") int year);
-
-    @Query("SELECT o FROM Order o WHERE FUNCTION('YEAR', o.createdDate) = :year")
-    List<Order> findByYear(@Param("year") int year);
 }
