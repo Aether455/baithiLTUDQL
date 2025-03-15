@@ -6,9 +6,11 @@ import com.example.baithicuoiki.repository.OrderDetailRepository;
 import com.example.baithicuoiki.repository.OrderRepository;
 import com.example.baithicuoiki.repository.ProductRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -16,18 +18,19 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Repository
+@RequiredArgsConstructor
 public class OrderService {
 
-    @Autowired
-    private OrderRepository orderRepository;
-    @Autowired
-    private OrderDetailRepository orderDetailRepository;
-    @Autowired
-    private ProductRepository productRepository;
-    @Autowired
-    private CartService cartService;
-    @Autowired
-    private CustomerRepository customerRepository;
+    private final OrderRepository orderRepository;
+
+    private final OrderDetailRepository orderDetailRepository;
+
+    private final ProductRepository productRepository;
+
+    private final CartService cartService;
+
+    private final CustomerRepository customerRepository;
 
     @Transactional
     public Order createOrder(String customerName,String shippingAddress, String phoneNumber, String notes, String paymentMethod, List<CartItem> cartItems, User user) {
@@ -38,6 +41,7 @@ public class OrderService {
         order.setNotes(notes);
         order.setPaymentMethod(paymentMethod);
         order.setUser(user);
+        order.setStatus("PENDING");
 
         // Xác định Customer từ User nếu có
         if (user != null) {

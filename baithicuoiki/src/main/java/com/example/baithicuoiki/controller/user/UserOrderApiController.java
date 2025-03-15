@@ -5,12 +5,14 @@ import com.example.baithicuoiki.model.Order;
 import com.example.baithicuoiki.model.User;
 import com.example.baithicuoiki.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user/orders")
@@ -38,19 +40,22 @@ public class UserOrderApiController {
 
     // Đặt hàng mới
     @PostMapping
-    public ResponseEntity<Order> createOrder(
+    public ResponseEntity<Map<String, Object>> createOrder(
             @RequestBody OrderRequestDTO orderRequest,
             @AuthenticationPrincipal User user) {
-
-        Order order = orderService.createOrder(
-                orderRequest.getCustomerName(),
-                orderRequest.getShippingAddress(),
-                orderRequest.getPhoneNumber(),
-                orderRequest.getNotes(),
-                orderRequest.getPaymentMethod(),
-                orderRequest.getCartItems(),
-                user
-        );
-        return ResponseEntity.ok(order);
+        try {
+            Order order = orderService.createOrder(
+                    orderRequest.getCustomerName(),
+                    orderRequest.getShippingAddress(),
+                    orderRequest.getPhoneNumber(),
+                    orderRequest.getNotes(),
+                    orderRequest.getPaymentMethod(),
+                    orderRequest.getCartItems(),
+                    user
+            );
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Đặt hàng thành công ", "order" , order));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Đặt hàng thất bại!"));
+        }
     }
 }

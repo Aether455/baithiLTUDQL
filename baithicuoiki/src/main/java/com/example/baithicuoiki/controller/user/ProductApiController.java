@@ -15,6 +15,8 @@ public class ProductApiController {
     private ProductService productService;
     @Autowired
     private CategoryService categoryService;
+
+
     @GetMapping
     public List<Product> getAllProducts(){
         return productService.getAllProducts();

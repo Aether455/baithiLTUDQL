@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -25,11 +27,14 @@ public class CustomerApiUserController {
 
     // Cập nhật thông tin khách hàng của chính người dùng (Chỉ cho phép User cập nhật thông tin của mình)
     @PutMapping("/{id}")
-    public ResponseEntity<Customer> updateCustomer(@PathVariable Long id, @RequestBody Customer customer) {
+    public ResponseEntity<?> updateCustomer(@PathVariable Long id, @RequestBody Customer customer) {
         try {
             customer.setId(id);
             Customer updatedCustomer = customerService.updateCustomer(customer);
-            return ResponseEntity.ok(updatedCustomer);
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Customer updated successfully");
+            response.put("customer", updatedCustomer);
+            return ResponseEntity.ok(response);
         } catch (IllegalStateException ex) {
             return ResponseEntity.notFound().build();
         }

@@ -8,12 +8,15 @@ import com.example.baithicuoiki.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/orders")
@@ -22,55 +25,77 @@ public class AdminOrderApiController {
     @Autowired
     private OrderService orderService;
 
-    // Lấy danh sách đơn hàng (phân trang)
     @GetMapping
-    public ResponseEntity<List<Order>> getAllOrders() {
-        List<Order> orders = orderService.getAllOrders();
-        return ResponseEntity.ok(orders);
+    public ResponseEntity<?> getAllOrders() {
+        try {
+            List<Order> orders = orderService.getAllOrders();
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Orders retrieved successfully");
+            response.put("orders", orders);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", e.getMessage()));
+        }
     }
 
-    // Lấy thông tin chi tiết một đơn hàng
     @GetMapping("/{orderId}")
-    public ResponseEntity<Order> getOrderById(@PathVariable Long orderId) {
-        Order order = orderService.getOrderById(orderId);
-        return ResponseEntity.ok(order);
+    public ResponseEntity<?> getOrderById(@PathVariable Long orderId) {
+        try {
+            Order order = orderService.getOrderById(orderId);
+//            return ResponseEntity.ok(order);
+            return ResponseEntity.ok(Map.of("message", "Order retrieved successfully", "order", order));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Order not found"));
+        }
     }
 
-    // Lấy danh sách chi tiết đơn hàng
     @GetMapping("/{orderId}/details")
-    public ResponseEntity<List<OrderDetail>> getOrderDetails(@PathVariable Long orderId) {
-        List<OrderDetail> orderDetails = orderService.getOrderDetails(orderId);
-        return ResponseEntity.ok(orderDetails);
+    public ResponseEntity<Map<String, Object>> getOrderDetails(@PathVariable Long orderId) {
+        try {
+            List<OrderDetail> orderDetails = orderService.getOrderDetails(orderId);
+            return ResponseEntity.ok(Map.of("message", "Order details retrieved successfully", "orderDetails", orderDetails));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Order details not found"));
+        }
     }
 
-    // Cập nhật trạng thái đơn hàng
     @PutMapping("/{orderId}/status")
-    public ResponseEntity<String> updateOrderStatus(@PathVariable Long orderId, @RequestBody OrderRequestDTO orderRequest) {
-        orderService.updateOrderStatus(orderId, orderRequest.getStatus());
-        return ResponseEntity.ok("Cập nhật trạng thái đơn hàng thành công!");
+    public ResponseEntity<Map<String, String>> updateOrderStatus(@PathVariable Long orderId, @RequestBody OrderRequestDTO orderRequest) {
+        try {
+            orderService.updateOrderStatus(orderId, orderRequest.getStatus());
+            return ResponseEntity.ok(Map.of("message", "Order status updated successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
+        }
     }
 
-    // Xóa đơn hàng
     @DeleteMapping("/{orderId}")
-    public ResponseEntity<String> deleteOrder(@PathVariable Long orderId) {
-        orderService.deleteOrder(orderId);
-        return ResponseEntity.ok("Xóa đơn hàng thành công!");
+    public ResponseEntity<Map<String, String>> deleteOrder(@PathVariable Long orderId) {
+        try {
+            orderService.deleteOrder(orderId);
+            return ResponseEntity.ok(Map.of("message", "Order deleted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Order not found"));
+        }
     }
 
     @PostMapping
-    public ResponseEntity<Order> createOrder(
+    public ResponseEntity<Map<String, Object>> createOrder(
             @RequestBody OrderRequestDTO orderRequest,
             @AuthenticationPrincipal User user) {
-
-        Order order = orderService.createOrder(
-                orderRequest.getCustomerName(),
-                orderRequest.getShippingAddress(),
-                orderRequest.getPhoneNumber(),
-                orderRequest.getNotes(),
-                orderRequest.getPaymentMethod(),
-                orderRequest.getCartItems(),
-                user
-        );
-        return ResponseEntity.ok(order);
+        try {
+            Order order = orderService.createOrder(
+                    orderRequest.getCustomerName(),
+                    orderRequest.getShippingAddress(),
+                    orderRequest.getPhoneNumber(),
+                    orderRequest.getNotes(),
+                    orderRequest.getPaymentMethod(),
+                    orderRequest.getCartItems(),
+                    user
+            );
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Order created successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
+        }
     }
 }

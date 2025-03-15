@@ -32,70 +32,103 @@ public class CartApiController {
     private User getAuthenticatedUser(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bạn chưa đăng nhập.");
+            throw new RuntimeException("Bạn chưa đăng nhập.");
         }
 
         String jwt = authHeader.substring(7);
-        String username = jwtUtil.extractUsername(jwt);
-        return userService.findByUsername(username)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng."));
+        return userService.findByUsername(jwtUtil.extractUsername(jwt))
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng."));
     }
 
     @GetMapping
-    public ResponseEntity<?> getCart(HttpServletRequest request) {
-        User user = getAuthenticatedUser(request);
-
+    public ResponseEntity<Map<String, Object>> getCart(HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
-        response.put("cartItems", cartService.getCartItems(user));
-        response.put("totalCartPrice", cartService.getTotalCartPrice(user));
-
-        return ResponseEntity.ok(response);
+        try {
+            User user = getAuthenticatedUser(request);
+            response.put("message", "Lấy giỏ hàng thành công");
+            response.put("cartItems", cartService.getCartItems(user));
+            response.put("totalCartPrice", cartService.getTotalCartPrice(user));
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 
     @PostMapping
-    public ResponseEntity<?> addToCart(@RequestBody CartRequestDTO cartRequest, HttpServletRequest request) {
-        User user = getAuthenticatedUser(request);
-        cartService.addToCart(user, cartRequest.getProductId(), cartRequest.getQuantity());
-        return ResponseEntity.ok("Sản phẩm đã được thêm vào giỏ hàng.");
+    public ResponseEntity<Map<String, Object>> addToCart(@RequestBody CartRequestDTO cartRequest, HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            User user = getAuthenticatedUser(request);
+            cartService.addToCart(user, cartRequest.getProductId(), cartRequest.getQuantity());
+            response.put("message", "Sản phẩm đã được thêm vào giỏ hàng.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 
     @PostMapping("/removeSelected")
-    public ResponseEntity<?> removeSelected(@RequestBody RemoveSelectedDTO removeRequest, HttpServletRequest request) {
-        User user = getAuthenticatedUser(request);
-
-        if (removeRequest.getProductIds() != null && !removeRequest.getProductIds().isEmpty()) {
-            removeRequest.getProductIds().forEach(productId -> cartService.removeFromCart(user, productId));
-            return ResponseEntity.ok("Đã xóa các sản phẩm khỏi giỏ hàng.");
-        } else {
-            return ResponseEntity.badRequest().body("Danh sách sản phẩm cần xóa không hợp lệ.");
+    public ResponseEntity<Map<String, Object>> removeSelected(@RequestBody RemoveSelectedDTO removeRequest, HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            User user = getAuthenticatedUser(request);
+            if (removeRequest.getProductIds() != null && !removeRequest.getProductIds().isEmpty()) {
+                removeRequest.getProductIds().forEach(productId -> cartService.removeFromCart(user, productId));
+                response.put("message", "Đã xóa các sản phẩm khỏi giỏ hàng.");
+                return ResponseEntity.ok(response);
+            } else {
+                throw new RuntimeException("Danh sách sản phẩm cần xóa không hợp lệ.");
+            }
+        } catch (Exception e) {
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
     }
 
     @DeleteMapping("/remove/{productId}")
-    public ResponseEntity<?> removeFromCart(@Valid @PathVariable Long productId, HttpServletRequest request) {
-        User user = getAuthenticatedUser(request);
-        cartService.removeFromCart(user, productId);
-        return ResponseEntity.ok("Sản phẩm đã được xóa khỏi giỏ hàng.");
+    public ResponseEntity<Map<String, Object>> removeFromCart(@Valid @PathVariable Long productId, HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            User user = getAuthenticatedUser(request);
+            cartService.removeFromCart(user, productId);
+            response.put("message", "Sản phẩm đã được xóa khỏi giỏ hàng.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 
     @PutMapping("/update")
-    public ResponseEntity<?> updateCartItem(@RequestBody CartRequestDTO cartRequest, HttpServletRequest request) {
-        User user = getAuthenticatedUser(request);
-
-        if (cartRequest.getQuantity() <= 0) {
-            return ResponseEntity.badRequest().body("Số lượng sản phẩm phải lớn hơn 0.");
+    public ResponseEntity<Map<String, Object>> updateCartItem(@RequestBody CartRequestDTO cartRequest, HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            User user = getAuthenticatedUser(request);
+            if (cartRequest.getQuantity() <= 0) {
+                throw new RuntimeException("Số lượng sản phẩm phải lớn hơn 0.");
+            }
+            cartService.updateCartItemQuantity(user, cartRequest.getProductId(), cartRequest.getQuantity());
+            response.put("message", "Số lượng sản phẩm đã được cập nhật.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
-
-        cartService.updateCartItemQuantity(user, cartRequest.getProductId(), cartRequest.getQuantity());
-        return ResponseEntity.ok("Số lượng sản phẩm đã được cập nhật.");
     }
-
 
     @DeleteMapping("/clear")
-    public ResponseEntity<?> clearCart(HttpServletRequest request) {
-        User user = getAuthenticatedUser(request);
-        cartService.clearCard(user);
-        return ResponseEntity.ok("Giỏ hàng đã được làm trống.");
+    public ResponseEntity<Map<String, Object>> clearCart(HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            User user = getAuthenticatedUser(request);
+            cartService.clearCard(user);
+            response.put("message", "Giỏ hàng đã được làm trống.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
     }
-
 }
