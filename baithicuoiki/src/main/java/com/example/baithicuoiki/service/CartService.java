@@ -109,4 +109,13 @@ public class CartService {
     public Long countCartItem(String username){
         return cartItemRepository.countCartItemByUsername(username);
     }
+
+
+
+    public boolean isStockAvailable(Long productId, int quantity) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm."));
+        return product.getQuantity() >= quantity;
+    }
+
 }

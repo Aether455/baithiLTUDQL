@@ -79,11 +79,18 @@ public class AdminOrderApiController {
         }
     }
 
+    // Đặt hàng mới
     @PostMapping
     public ResponseEntity<Map<String, Object>> createOrder(
             @RequestBody OrderRequestDTO orderRequest,
             @AuthenticationPrincipal User user) {
         try {
+            // Kiểm tra số lượng sản phẩm trong kho
+            List<String> outOfStockProducts = orderService.checkStockAndGetUnavailableProducts(orderRequest.getCartItems());
+            if (!outOfStockProducts.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("message", "Sản phẩm " + String.join(", ", outOfStockProducts)+ " không đủ hàng!"));
+            }
             Order order = orderService.createOrder(
                     orderRequest.getCustomerName(),
                     orderRequest.getShippingAddress(),
@@ -93,9 +100,9 @@ public class AdminOrderApiController {
                     orderRequest.getCartItems(),
                     user
             );
-            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Order created successfully"));
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Đặt hàng thành công ", "order" , order));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Đặt hàng thất bại!"));
         }
     }
 }

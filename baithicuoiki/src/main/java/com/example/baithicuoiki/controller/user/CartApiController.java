@@ -60,14 +60,24 @@ public class CartApiController {
         Map<String, Object> response = new HashMap<>();
         try {
             User user = getAuthenticatedUser(request);
+
+            if (!cartService.isStockAvailable(cartRequest.getProductId(), cartRequest.getQuantity())) {
+                response.put("message", "Số lượng sản phẩm không đủ!");
+                response.put("status", false);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+
             cartService.addToCart(user, cartRequest.getProductId(), cartRequest.getQuantity());
             response.put("message", "Sản phẩm đã được thêm vào giỏ hàng.");
-            return ResponseEntity.ok(response);
+            response.put("status", true);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (Exception e) {
             response.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            response.put("status", false);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
 
     @PostMapping("/removeSelected")
     public ResponseEntity<Map<String, Object>> removeSelected(@RequestBody RemoveSelectedDTO removeRequest, HttpServletRequest request) {

@@ -15,7 +15,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Repository
@@ -151,4 +153,16 @@ public class OrderService {
     public List<Order> getOrdersByUserId(Long userId) {
         return orderRepository.findByUserId(userId);
     }
+
+    public List<String> checkStockAndGetUnavailableProducts(List<CartItem> cartItems) {
+        return cartItems.stream()
+                .map(item -> productRepository.findById(item.getProduct().getId())
+                        .filter(product -> product.getQuantity() < item.getQuantity()) // Kiểm tra hàng tồn kho
+                        .map(Product::getName) // Lấy tên sản phẩm
+                        .orElse(null))
+                .filter(Objects::nonNull) // Loại bỏ các giá trị null (sản phẩm đủ hàng)
+                .collect(Collectors.toList()); // Thu thập danh sách sản phẩm hết hàng
+    }
+
+
 }

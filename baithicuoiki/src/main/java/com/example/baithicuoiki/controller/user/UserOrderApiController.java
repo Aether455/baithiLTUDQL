@@ -44,6 +44,12 @@ public class UserOrderApiController {
             @RequestBody OrderRequestDTO orderRequest,
             @AuthenticationPrincipal User user) {
         try {
+            // Kiểm tra số lượng sản phẩm trong kho
+            List<String> outOfStockProducts = orderService.checkStockAndGetUnavailableProducts(orderRequest.getCartItems());
+            if (!outOfStockProducts.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("message", "Sản phẩm " + String.join(", ", outOfStockProducts)+ " không đủ hàng!"));
+            }
             Order order = orderService.createOrder(
                     orderRequest.getCustomerName(),
                     orderRequest.getShippingAddress(),
