@@ -6,11 +6,8 @@ import com.example.baithicuoiki.model.OrderDetail;
 import com.example.baithicuoiki.model.User;
 import com.example.baithicuoiki.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,83 +23,98 @@ public class AdminOrderApiController {
     private OrderService orderService;
 
     @GetMapping
-    public ResponseEntity<?> getAllOrders() {
+    public ResponseEntity<Map<String, Object>> getAllOrders() {
+        Map<String, Object> response = new HashMap<>();
         try {
-            List<Order> orders = orderService.getAllOrders();
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Orders retrieved successfully");
-            response.put("orders", orders);
+            response.put("orders", orderService.getAllOrders());
+            response.put("message", "Lấy danh sách đơn hàng thành công");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", e.getMessage()));
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
     @GetMapping("/{orderId}")
-    public ResponseEntity<?> getOrderById(@PathVariable Long orderId) {
+    public ResponseEntity<Map<String, Object>> getOrderById(@PathVariable Long orderId) {
+        Map<String, Object> response = new HashMap<>();
         try {
-            Order order = orderService.getOrderById(orderId);
-//            return ResponseEntity.ok(order);
-            return ResponseEntity.ok(Map.of("message", "Order retrieved successfully", "order", order));
+            response.put("order", orderService.getOrderById(orderId));
+            response.put("message", "Lấy thông tin đơn hàng thành công");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Order not found"));
+            response.put("message", "Không tìm thấy đơn hàng");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 
     @GetMapping("/{orderId}/details")
     public ResponseEntity<Map<String, Object>> getOrderDetails(@PathVariable Long orderId) {
+        Map<String, Object> response = new HashMap<>();
         try {
-            List<OrderDetail> orderDetails = orderService.getOrderDetails(orderId);
-            return ResponseEntity.ok(Map.of("message", "Order details retrieved successfully", "orderDetails", orderDetails));
+            response.put("orderDetails", orderService.getOrderDetails(orderId));
+            response.put("message", "Lấy chi tiết đơn hàng thành công");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Order details not found"));
+            response.put("message", "Không tìm thấy chi tiết đơn hàng");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 
     @PutMapping("/{orderId}/status")
-    public ResponseEntity<Map<String, String>> updateOrderStatus(@PathVariable Long orderId, @RequestBody OrderRequestDTO orderRequest) {
+    public ResponseEntity<Map<String, Object>> updateOrderStatus(@PathVariable Long orderId, @RequestBody OrderRequestDTO orderRequest) {
+        Map<String, Object> response = new HashMap<>();
         try {
             orderService.updateOrderStatus(orderId, orderRequest.getStatus());
-            return ResponseEntity.ok(Map.of("message", "Order status updated successfully"));
+            response.put("message", "Cập nhật trạng thái đơn hàng thành công");
+            response.put("isSuccess", true);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", e.getMessage()));
+            response.put("message", "Cập nhật trạng thái đơn hàng thất bại");
+            response.put("isSuccess", false);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
     @DeleteMapping("/{orderId}")
-    public ResponseEntity<Map<String, String>> deleteOrder(@PathVariable Long orderId) {
+    public ResponseEntity<Map<String, Object>> deleteOrder(@PathVariable Long orderId) {
+        Map<String, Object> response = new HashMap<>();
         try {
             orderService.deleteOrder(orderId);
-            return ResponseEntity.ok(Map.of("message", "Order deleted successfully"));
+            response.put("message", "Xóa đơn hàng thành công");
+            response.put("isSuccess", true);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Order not found"));
+            response.put("message", "Không tìm thấy đơn hàng");
+            response.put("isSuccess", false);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 
-    // Đặt hàng mới
     @PostMapping
     public ResponseEntity<Map<String, Object>> createOrder(
             @RequestBody OrderRequestDTO orderRequest,
             @AuthenticationPrincipal User user) {
+        Map<String, Object> response = new HashMap<>();
         try {
-            // Kiểm tra số lượng sản phẩm trong kho
             List<String> outOfStockProducts = orderService.checkStockAndGetUnavailableProducts(orderRequest.getCartItems());
             if (!outOfStockProducts.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("message", "Sản phẩm " + String.join(", ", outOfStockProducts)+ " không đủ hàng!"));
+                response.put("message", "Sản phẩm " + String.join(", ", outOfStockProducts) + " không đủ hàng!");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
-            Order order = orderService.createOrder(
+            response.put("order", orderService.createOrder(
                     orderRequest.getCustomerName(),
                     orderRequest.getShippingAddress(),
                     orderRequest.getPhoneNumber(),
                     orderRequest.getNotes(),
                     orderRequest.getPaymentMethod(),
                     orderRequest.getCartItems(),
-                    user
-            );
-            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Đặt hàng thành công ", "order" , order));
+                    user));
+            response.put("message", "Tạo đơn hàng thành công");
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Đặt hàng thất bại!"));
+            response.put("message", "Tạo đơn hàng thất bại!");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 }

@@ -25,10 +25,10 @@ public class AdminProductApiController {
         Map<String, Object> response = new HashMap<>();
         try {
             Category category = categoryService.getCategoryById(product.getCategory().getId())
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục"));
             product.setCategory(category);
             Product savedProduct = productService.addProduct(product);
-            response.put("message", "Product created successfully");
+            response.put("message", "Tạo sản phẩm thành công");
             response.put("product", savedProduct);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -42,8 +42,8 @@ public class AdminProductApiController {
         Map<String, Object> response = new HashMap<>();
         try {
             Product product = productService.getProductById(id)
-                    .orElseThrow(() -> new RuntimeException("Product not found on :: " + id));
-            response.put("message", "Product retrieved successfully");
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + id));
+            response.put("message", "Lấy thông tin sản phẩm thành công");
             response.put("product", product);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -57,9 +57,9 @@ public class AdminProductApiController {
         Map<String, Object> response = new HashMap<>();
         try {
             Product product = productService.getProductById(id)
-                    .orElseThrow(() -> new RuntimeException("Product not found on :: " + id));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + id));
             Category category = categoryService.getCategoryById(productDetail.getCategory().getId())
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục"));
 
             product.setName(productDetail.getName());
             product.setPrice(productDetail.getPrice());
@@ -72,7 +72,7 @@ public class AdminProductApiController {
             product.setQuantity(productDetail.getQuantity());
 
             Product updatedProduct = productService.addProduct(product);
-            response.put("message", "Product updated successfully");
+            response.put("message", "Cập nhật sản phẩm thành công");
             response.put("product", updatedProduct);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -82,16 +82,18 @@ public class AdminProductApiController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteProduct(@PathVariable Long id) {
-        Map<String, String> response = new HashMap<>();
+    public ResponseEntity<Map<String, Object>> deleteProduct(@PathVariable Long id) {
+        Map<String, Object> response = new HashMap<>();
         try {
             Product product = productService.getProductById(id)
-                    .orElseThrow(() -> new RuntimeException("Product not found on :: " + id));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + id));
             productService.deleteProductById(id);
-            response.put("message", "Product deleted successfully");
+            response.put("message", "Xóa sản phẩm thành công");
+            response.put("isSuccess", true);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            response.put("error", e.getMessage());
+            response.put("message", e.getMessage());
+            response.put("isSuccess", false);
             return ResponseEntity.badRequest().body(response);
         }
     }

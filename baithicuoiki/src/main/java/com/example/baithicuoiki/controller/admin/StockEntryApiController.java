@@ -25,12 +25,11 @@ public class StockEntryApiController {
     @Autowired
     private SupplierService supplierService;
 
-
     @GetMapping("/stock_entry")
     public ResponseEntity<?> getAllStockEntries() {
         List<StockEntry> stockEntries = stockEntryService.getAllStockEntries();
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Stock entries retrieved successfully");
+        response.put("message", "Lấy danh sách nhập kho thành công");
         response.put("stock_entries", stockEntries);
         return ResponseEntity.ok(response);
     }
@@ -52,7 +51,7 @@ public class StockEntryApiController {
             stockEntry.setPrice(stockEntryDTO.getPrice());
 
             StockEntry savedStockEntry = stockEntryService.addStockEntry(stockEntry);
-            response.put("message", "Stock entry created successfully");
+            response.put("message", "Tạo bản ghi nhập kho thành công");
             response.put("stock_entry", savedStockEntry);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -80,7 +79,7 @@ public class StockEntryApiController {
             existingStockEntry.setPrice(stockEntryDTO.getPrice());
 
             StockEntry updatedStockEntry = stockEntryService.updateStockEntry(existingStockEntry);
-            response.put("message", "Stock entry updated successfully");
+            response.put("message", "Cập nhật bản ghi nhập kho thành công");
             response.put("stock_entry", updatedStockEntry);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -94,10 +93,12 @@ public class StockEntryApiController {
         Map<String, Object> response = new HashMap<>();
         try {
             stockEntryService.deleteStockEntryById(id);
-            response.put("message", "Stock entry deleted successfully");
+            response.put("message", "Xóa bản ghi nhập kho thành công");
+            response.put("isSuccess", true);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("message", e.getMessage());
+            response.put("isSuccess", false);
             return ResponseEntity.badRequest().body(response);
         }
     }

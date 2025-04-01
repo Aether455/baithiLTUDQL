@@ -23,11 +23,11 @@ public class AdminCategoryApiController {
         Map<String, Object> response = new HashMap<>();
         try {
             categoryService.addCategory(category);
-            response.put("message", "Category created successfully");
+            response.put("message", "Tạo danh mục thành công");
             response.put("category", category);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            response.put("message", "Failed to create category: " + e.getMessage());
+            response.put("message", "Tạo danh mục thất bại: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }
@@ -37,28 +37,30 @@ public class AdminCategoryApiController {
         Map<String, Object> response = new HashMap<>();
         try {
             Category category = categoryService.getCategoryById(id)
-                    .orElseThrow(() -> new RuntimeException("Category not found on :: " + id));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục với ID: " + id));
             category.setName(categoryDetails.getName());
             Category updatedCategory = categoryService.updateCategory(category);
 
-            response.put("message", "Category updated successfully");
+            response.put("message", "Cập nhật danh mục thành công");
             response.put("category", updatedCategory);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            response.put("message", "Failed to update category: " + e.getMessage());
+            response.put("message", "Cập nhật danh mục thất bại: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteCategory(@PathVariable Long id) {
-        Map<String, String> response = new HashMap<>();
+    public ResponseEntity<Map<String, ?>> deleteCategory(@PathVariable Long id) {
+        Map<String, Object> response = new HashMap<>();
         try {
             categoryService.deleteCategory(id);
-            response.put("message", "Xóa danh mục thành công!");
+            response.put("message", "Xóa danh mục thành công");
+            response.put("isSuccess", true);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            response.put("message", "Xoá danh mục thất bại!");
+            response.put("isSuccess", false);
+            response.put("message", "Xóa danh mục thất bại: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }

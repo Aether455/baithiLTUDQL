@@ -24,6 +24,14 @@ public class SupplierService {
     public Optional<Supplier> getSupplierById(Long id){
         return supplierRepository.findById(id);
     }
+
+    public boolean existsByPhone(String phone){
+        return supplierRepository.existsByPhone(phone);
+    }
+    public boolean existsByEmail(String email){
+        return supplierRepository.existsByEmail(email);
+    }
+
     public Supplier addSupplier(Supplier supplier){
 
         if (supplierRepository.existsByPhone(supplier.getPhone())) {
@@ -61,4 +69,6 @@ public class SupplierService {
         }
         return false;
     }
+
+
 }

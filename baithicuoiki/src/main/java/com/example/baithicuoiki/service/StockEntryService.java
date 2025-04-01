@@ -47,14 +47,16 @@ public class StockEntryService {
         StockEntry existingStockEntry = stockEntryRepository.findById(stockEntry.getId())
                 .orElseThrow(() -> new IllegalStateException("Stock entry with ID " + stockEntry.getId() + " does not exist."));
 
-        Product product = existingStockEntry.getProduct(); //  Lấy sản phẩm từ nhập kho cũ
+        Product product = productRepository.findById(existingStockEntry.getProduct().getId())
+                .orElseThrow(() -> new IllegalStateException("Product not found"));
+
         Supplier supplier = supplierRepository.findById(stockEntry.getSupplier().getId())
                 .orElseThrow(() -> new IllegalStateException("Supplier with ID " + stockEntry.getSupplier().getId() + " does not exist."));
 
         int oldQuantity = existingStockEntry.getQuantity();
         int newQuantity = stockEntry.getQuantity();
 
-        // Cập nhật số lượng sản phẩm: trừ số lượng cũ, cộng số lượng mới
+        // Cập nhật số lượng sản phẩm
         int updatedQuantity = product.getQuantity() - oldQuantity + newQuantity;
 
         if (updatedQuantity < 0) {
@@ -62,14 +64,19 @@ public class StockEntryService {
         }
 
         product.setQuantity(updatedQuantity);
-        productRepository.save(product); //  Cập nhật số lượng trước khi lưu nhập kho
+        productRepository.save(product); // Lưu số lượng sản phẩm trước khi cập nhật nhập kho
 
+        // Cập nhật thông tin nhập kho
         existingStockEntry.setSupplier(supplier);
         existingStockEntry.setQuantity(newQuantity);
         existingStockEntry.setPrice(stockEntry.getPrice());
 
-        return stockEntryRepository.save(existingStockEntry);
+        StockEntry savedEntry = stockEntryRepository.save(existingStockEntry);
+        productRepository.flush(); // Đảm bảo cập nhật ngay vào DB
+
+        return savedEntry;
     }
+
 
 
     public void deleteStockEntryById(Long id) {

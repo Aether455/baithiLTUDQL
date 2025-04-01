@@ -78,4 +78,8 @@ public class CustomerService {
         }
         customerRepository.deleteById(id);
     }
+
+    public Customer getCustomerById(Long id){
+        return customerRepository.getReferenceById(id);
+    }
 }
