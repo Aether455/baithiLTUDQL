@@ -1,5 +1,6 @@
 package com.example.baithicuoiki.service;
 
+import com.example.baithicuoiki.dto.StockEntryDTO;
 import com.example.baithicuoiki.model.Product;
 import com.example.baithicuoiki.model.StockEntry;
 import com.example.baithicuoiki.model.Supplier;
@@ -43,22 +44,21 @@ public class StockEntryService {
         return stockEntryRepository.save(stockEntry);
     }
     @Transactional
-    public StockEntry updateStockEntry(@NonNull StockEntry stockEntry) {
-        StockEntry existingStockEntry = stockEntryRepository.findById(stockEntry.getId())
-                .orElseThrow(() -> new IllegalStateException("Stock entry with ID " + stockEntry.getId() + " does not exist."));
+    public StockEntry updateStockEntry(@NonNull Long id, @NonNull StockEntryDTO stockEntryDTO) {
+        StockEntry existingStockEntry = stockEntryRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Stock entry with ID " + id + " does not exist."));
 
-        Product product = productRepository.findById(existingStockEntry.getProduct().getId())
+        Product product = productRepository.findById(stockEntryDTO.getProductId())
                 .orElseThrow(() -> new IllegalStateException("Product not found"));
 
-        Supplier supplier = supplierRepository.findById(stockEntry.getSupplier().getId())
-                .orElseThrow(() -> new IllegalStateException("Supplier with ID " + stockEntry.getSupplier().getId() + " does not exist."));
+        Supplier supplier = supplierRepository.findById(stockEntryDTO.getSupplierId())
+                .orElseThrow(() -> new IllegalStateException("Supplier with ID " + stockEntryDTO.getSupplierId() + " does not exist."));
 
         int oldQuantity = existingStockEntry.getQuantity();
-        int newQuantity = stockEntry.getQuantity();
+        int newQuantity = stockEntryDTO.getQuantity();
 
         // Cập nhật số lượng sản phẩm
         int updatedQuantity = product.getQuantity() - oldQuantity + newQuantity;
-
         if (updatedQuantity < 0) {
             throw new IllegalStateException("Không thể cập nhật, số lượng trong kho không đủ.");
         }
@@ -67,15 +67,17 @@ public class StockEntryService {
         productRepository.save(product); // Lưu số lượng sản phẩm trước khi cập nhật nhập kho
 
         // Cập nhật thông tin nhập kho
+        existingStockEntry.setProduct(product);
         existingStockEntry.setSupplier(supplier);
         existingStockEntry.setQuantity(newQuantity);
-        existingStockEntry.setPrice(stockEntry.getPrice());
+        existingStockEntry.setPrice(stockEntryDTO.getPrice());
 
         StockEntry savedEntry = stockEntryRepository.save(existingStockEntry);
         productRepository.flush(); // Đảm bảo cập nhật ngay vào DB
 
         return savedEntry;
     }
+
 
 
 

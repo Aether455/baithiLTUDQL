@@ -64,21 +64,7 @@ public class StockEntryApiController {
     public ResponseEntity<Map<String, Object>> updateStockEntry(@PathVariable Long id, @RequestBody StockEntryDTO stockEntryDTO) {
         Map<String, Object> response = new HashMap<>();
         try {
-            StockEntry existingStockEntry = stockEntryService.getStockEntryById(id)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi nhập kho với ID: " + id));
-
-            Product product = productService.getProductById(stockEntryDTO.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + stockEntryDTO.getProductId()));
-
-            Supplier supplier = supplierService.getSupplierById(stockEntryDTO.getSupplierId())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy nhà cung cấp với ID: " + stockEntryDTO.getSupplierId()));
-
-            existingStockEntry.setProduct(product);
-            existingStockEntry.setSupplier(supplier);
-            existingStockEntry.setQuantity(stockEntryDTO.getQuantity());
-            existingStockEntry.setPrice(stockEntryDTO.getPrice());
-
-            StockEntry updatedStockEntry = stockEntryService.updateStockEntry(existingStockEntry);
+            StockEntry updatedStockEntry = stockEntryService.updateStockEntry(id, stockEntryDTO);
             response.put("message", "Cập nhật bản ghi nhập kho thành công");
             response.put("stock_entry", updatedStockEntry);
             return ResponseEntity.ok(response);
